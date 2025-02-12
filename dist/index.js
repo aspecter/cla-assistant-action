@@ -894,9 +894,9 @@ function isCommentSignedByUser(comment, commentAuthor) {
     // using a `string` true or false purposely as github action input cannot have a boolean value
     switch ((0, getInputs_1.getUseDcoFlag)()) {
         case 'true':
-            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco[,]?\s*/.source + emailRegex + /.*$/.source)) !== null;
+            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco[,]?\s*/.source + emailRegex.source + /.*$/.source)) !== null;
         case 'false':
-            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla[,]?\s*/.source + emailRegex + /.*$/.source)) !== null;
+            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla[,]?\s*/.source + emailRegex.source + /.*$/.source)) !== null;
         default:
             return false;
     }
