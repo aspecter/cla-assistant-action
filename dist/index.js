@@ -122,6 +122,7 @@ function getCommitters() {
                 const committer = extractUserFromCommit(edge.node.commit);
                 let user = {
                     name: committer.login || committer.name,
+                    email: '',
                     id: committer.databaseId || '',
                     pullRequestNo: github_1.context.issue.number
                 };
@@ -682,7 +683,7 @@ function dco(signed, committerMap) {
     let lineOne = (input.getCustomNotSignedPrComment() || `<br/>Thank you for your submission, we really appreciate it. Like many open-source projects, we ask that $you sign our [Developer Certificate of Origin](${input.getPathToDocument()}) before we can accept your contribution. You can sign the DCO by just posting a Pull Request Comment same as the below format.<br/>`).replace('$you', you);
     let text = `${lineOne}
    - - -
-   ${input.getCustomPrSignComment() || "I have read the DCO Document and I hereby sign the DCO"}
+   ${input.getCustomPrSignComment() || "I have read the DCO Document and I hereby sign the DCO, e-mail: example@mail.com"}
    - - -
    `;
     if (committersCount > 1 && committerMap && committerMap.signed && committerMap.notSigned) {
@@ -828,6 +829,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const octokit_1 = __nccwpck_require__(3258);
 const github_1 = __nccwpck_require__(5438);
 const getInputs_1 = __nccwpck_require__(3611);
+const emailAddressRegex = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/;
+const emailRegex = new RegExp(/e-mail\s*: \s*/.source + emailAddressRegex.source);
 function signatureWithPRComment(committerMap, committers) {
     return __awaiter(this, void 0, void 0, function* () {
         let repoId = github_1.context.payload.repository.id;
@@ -841,6 +844,7 @@ function signatureWithPRComment(committerMap, committers) {
         prResponse === null || prResponse === void 0 ? void 0 : prResponse.data.map((prComment) => {
             listOfPRComments.push({
                 name: prComment.user.login,
+                email: "",
                 id: prComment.user.id,
                 comment_id: prComment.id,
                 body: prComment.body.trim().toLowerCase(),
@@ -850,8 +854,14 @@ function signatureWithPRComment(committerMap, committers) {
             });
         });
         listOfPRComments.map(comment => {
+            var _a, _b, _c;
             if (isCommentSignedByUser(comment.body || "", comment.name)) {
-                filteredListOfPRComments.push(comment);
+                let email = (_a = emailRegex.exec(comment.body || "")) === null || _a === void 0 ? void 0 : _a.shift();
+                email = (_c = (_b = email === null || email === void 0 ? void 0 : email.match(emailAddressRegex)) === null || _b === void 0 ? void 0 : _b.shift()) === null || _c === void 0 ? void 0 : _c.trim();
+                if (email) {
+                    comment.email = email;
+                    filteredListOfPRComments.push(comment);
+                }
             }
         });
         for (var i = 0; i < filteredListOfPRComments.length; i++) {
@@ -884,9 +894,9 @@ function isCommentSignedByUser(comment, commentAuthor) {
     // using a `string` true or false purposely as github action input cannot have a boolean value
     switch ((0, getInputs_1.getUseDcoFlag)()) {
         case 'true':
-            return comment.match(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco.*$/) !== null;
+            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco[,]?\s*/.source + emailRegex + /.*$/.source)) !== null;
         case 'false':
-            return comment.match(/^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla.*$/) !== null;
+            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla[,]?\s*/.source + emailRegex + /.*$/.source)) !== null;
         default:
             return false;
     }
@@ -1132,7 +1142,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getPrSignComment = void 0;
 const input = __importStar(__nccwpck_require__(3611));
 function getPrSignComment() {
-    return input.getCustomPrSignComment() || "I have read the CLA Document and I hereby sign the CLA";
+    return input.getCustomPrSignComment() || "I have read the CLA Document and I hereby sign the CLA, e-mail: example@email.com";
 }
 exports.getPrSignComment = getPrSignComment;
 
