@@ -7,6 +7,8 @@ import * as core from '@actions/core'
 
 const emailAddressRegex = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/
 const emailRegex = new RegExp(/e-mail\s*: \s*/.source + emailAddressRegex.source)
+const cleIndividualRegex = /^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla \s*behalf \s*on \s*myself[,]?\s*/
+const claEnterpriseRegex = /^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla \s*behalf \s*of \s*my \s*company[,]?\s*/
 
 export default async function signatureWithPRComment(committerMap: CommitterMap, committers): Promise<ReactedCommitterMap> {
 
@@ -23,6 +25,7 @@ export default async function signatureWithPRComment(committerMap: CommitterMap,
         listOfPRComments.push({
             name: prComment.user.login,
             email: "",
+            enterprise: false,
             id: prComment.user.id,
             comment_id: prComment.id,
             body: prComment.body.trim().toLowerCase(),
@@ -33,10 +36,12 @@ export default async function signatureWithPRComment(committerMap: CommitterMap,
     })
     listOfPRComments.map(comment => {
         if (isCommentSignedByUser(comment.body || "", comment.name)) {
-            let email = emailRegex.exec(comment.body || "")?.shift()
+            let enterprise = claEnterpriseRegex.test(comment.body ?? "")
+            let email = emailRegex.exec(comment.body ?? "")?.shift()
             email = email?.match(emailAddressRegex)?.shift()?.trim()
             if (email) {
                 comment.email = email
+                comment.enterprise = enterprise
                 filteredListOfPRComments.push(comment)
             }
         }
@@ -73,9 +78,10 @@ function isCommentSignedByUser(comment: string, commentAuthor: string): boolean 
     // using a `string` true or false purposely as github action input cannot have a boolean value
     switch (getUseDcoFlag()) {
         case 'true':
-            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco[,]?\s*/.source + emailRegex.source + /.*$/.source)) !== null
+            return comment.match(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco\s*/) !== null
         case 'false':
-            return comment.match(new RegExp(/^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla[,]?\s*/.source + emailRegex.source + /.*$/.source)) !== null
+            return (comment.match(new RegExp(cleIndividualRegex.source + emailRegex.source + /.*$/.source)) !== null) ||
+                (comment.match(new RegExp(claEnterpriseRegex.source + emailRegex.source + /.*$/.source)) !== null)
         default:
             return false
     }

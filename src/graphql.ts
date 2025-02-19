@@ -56,6 +56,7 @@ export default async function getCommitters(): Promise<CommittersDetails[]> {
             let user = {
                 name: committer.login || committer.name,
                 email: '', // committer.author.email
+                enterprise: false,
                 id: committer.databaseId || '',
                 pullRequestNo: context.issue.number
             }

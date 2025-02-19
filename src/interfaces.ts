@@ -16,6 +16,7 @@ export interface CommentedCommitterMap {
 export interface CommittersDetails {
     name: string,
     email: string,
+    enterprise: boolean,
     id: number,
     pullRequestNo?: number,
     created_at?: string,
