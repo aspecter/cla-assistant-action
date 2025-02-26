@@ -115,7 +115,7 @@ function prepareCommiterMap(
   claFileContent
 ): CommitterMap {
   let committerMap = getInitialCommittersMap()
-  const validDateOffset = 15811200000 // 183 day in millis
+  const validDateOffset = 15811200000 // 183 days in millis
   const currentDate = Date.now()
 
   committerMap.notSigned = committers.filter(

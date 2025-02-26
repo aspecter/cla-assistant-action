@@ -1030,7 +1030,7 @@ function createClaFileAndPRComment(committers, committerMap) {
 }
 function prepareCommiterMap(committers, claFileContent) {
     let committerMap = getInitialCommittersMap();
-    const validDateOffset = 15811200000; // 183 day in millis
+    const validDateOffset = 15811200000; // 183 days in millis
     const currentDate = Date.now();
     committerMap.notSigned = committers.filter(committer => !(claFileContent === null || claFileContent === void 0 ? void 0 : claFileContent.signedContributors.some(cla => (committer.id === cla.id) &&
         ((currentDate - Date.parse(cla.created_at)) < validDateOffset))));
