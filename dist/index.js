@@ -902,8 +902,8 @@ function isCommentSignedByUser(comment, commentAuthor) {
         case 'true':
             return comment.match(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco\s*/) !== null;
         case 'false':
-            return (comment.match(new RegExp(cleIndividualRegex.source + emailRegex.source + /.*$/.source)) !== null) ||
-                (comment.match(new RegExp(claBusinessRegex.source + emailRegex.source + /.*$/.source)) !== null);
+            return (comment.match(new RegExp(cleIndividualRegex.source + emailRegex.source + /\.?$/.source)) !== null) ||
+                (comment.match(new RegExp(claBusinessRegex.source + emailRegex.source + /\.?$/.source)) !== null);
         default:
             return false;
     }
