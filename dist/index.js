@@ -123,7 +123,7 @@ function getCommitters() {
                 let user = {
                     name: committer.login || committer.name,
                     email: '',
-                    enterprise: false,
+                    accountType: '',
                     id: committer.databaseId || '',
                     pullRequestNo: github_1.context.issue.number
                 };
@@ -739,7 +739,7 @@ function cla(signed, committerMap) {
         text += ' You need a GitHub account to be able to sign the CLA. If you have already a GitHub account, please [add the email address used for this commit to your account](https://help.github.com/articles/why-are-my-commits-linked-to-the-wrong-user/#commits-are-not-linked-to-any-user).<br/>';
     }
     if (input.suggestRecheck() == 'true') {
-        text += '<sub>You can retrigger this bot by commenting **recheck** in this Pull Request. </sub>';
+        text += '<sub>This bot will be retriggered when the Contributor License Agreement comment has been provided. </sub>';
     }
     text += '<sub>Posted by the **CLA Assistant Lite bot**.</sub>';
     return text;
@@ -831,9 +831,9 @@ const octokit_1 = __nccwpck_require__(3258);
 const github_1 = __nccwpck_require__(5438);
 const getInputs_1 = __nccwpck_require__(3611);
 const emailAddressRegex = /[\w-\.]+@([\w-]+\.)+[\w-]{2,4}/;
-const emailRegex = new RegExp(/e-mail\s*: \s*/.source + emailAddressRegex.source);
+const emailRegex = new RegExp(/e-mail\s*:\s*/.source + emailAddressRegex.source);
 const cleIndividualRegex = /^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla \s*behalf \s*on \s*myself[,]?\s*/;
-const claEnterpriseRegex = /^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla \s*behalf \s*of \s*my \s*company[,]?\s*/;
+const claBusinessRegex = /^.*i \s*have \s*read \s*the \s*cla \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*cla \s*behalf \s*of \s*my \s*company[,]?\s*/;
 function signatureWithPRComment(committerMap, committers) {
     return __awaiter(this, void 0, void 0, function* () {
         let repoId = github_1.context.payload.repository.id;
@@ -848,7 +848,7 @@ function signatureWithPRComment(committerMap, committers) {
             listOfPRComments.push({
                 name: prComment.user.login,
                 email: "",
-                enterprise: false,
+                accountType: "",
                 id: prComment.user.id,
                 comment_id: prComment.id,
                 body: prComment.body.trim().toLowerCase(),
@@ -860,12 +860,12 @@ function signatureWithPRComment(committerMap, committers) {
         listOfPRComments.map(comment => {
             var _a, _b, _c, _d, _e;
             if (isCommentSignedByUser(comment.body || "", comment.name)) {
-                let enterprise = claEnterpriseRegex.test((_a = comment.body) !== null && _a !== void 0 ? _a : "");
+                let business = claBusinessRegex.test((_a = comment.body) !== null && _a !== void 0 ? _a : "");
                 let email = (_c = emailRegex.exec((_b = comment.body) !== null && _b !== void 0 ? _b : "")) === null || _c === void 0 ? void 0 : _c.shift();
                 email = (_e = (_d = email === null || email === void 0 ? void 0 : email.match(emailAddressRegex)) === null || _d === void 0 ? void 0 : _d.shift()) === null || _e === void 0 ? void 0 : _e.trim();
                 if (email) {
                     comment.email = email;
-                    comment.enterprise = enterprise;
+                    comment.accountType = business ? "business" : "personal";
                     filteredListOfPRComments.push(comment);
                 }
             }
@@ -903,7 +903,7 @@ function isCommentSignedByUser(comment, commentAuthor) {
             return comment.match(/^.*i \s*have \s*read \s*the \s*dco \s*document \s*and \s*i \s*hereby \s*sign \s*the \s*dco\s*/) !== null;
         case 'false':
             return (comment.match(new RegExp(cleIndividualRegex.source + emailRegex.source + /.*$/.source)) !== null) ||
-                (comment.match(new RegExp(claEnterpriseRegex.source + emailRegex.source + /.*$/.source)) !== null);
+                (comment.match(new RegExp(claBusinessRegex.source + emailRegex.source + /.*$/.source)) !== null);
         default:
             return false;
     }
